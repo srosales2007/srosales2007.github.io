@@ -3,62 +3,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora Pokémon Gengar y Ditto 3D</title>
+    <title>Calculadora Gengar & Ditto</title>
     <style>
-        /* Estilos CSS para la calculadora y el fondo */
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Roboto:wght@400;700&display=swap');
+
         body {
-            font-family: sans-serif;
-            background-color: #673AB7; /* Morado oscuro */
-            color: #fff;
+            margin: 0;
+            overflow: hidden;
+            background-color: #240046; /* Morado muy oscuro */
+            font-family: 'Roboto', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
+            height: 100vh;
         }
 
-        #fondo-pokemon {
+        /* Lienzo 3D en el fondo */
+        #canvas-container {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1; /* Para que esté detrás de la calculadora */
-            /* Aquí irían los modelos 3D de Gengar y Ditto flotando */
-            /* Puedes usar librerías como Three.js para crear animaciones 3D */
-            /* Ejemplo simple con imágenes (reemplaza con tus modelos 3D): */
-            /* background-image: url("gengar.png"), url("ditto.png"); */
-            /* background-repeat: no-repeat; */
-            /* background-position: 10% 20%, 80% 70%; */
-            /* animation: flotar 5s ease-in-out infinite alternate; */
+            z-index: 0;
         }
 
-        @keyframes flotar {
-            from { transform: translateY(0); }
-            to { transform: translateY(-20px); }
-        }
-
-        .calculadora {
-            background-color: #9575CD; /* Morado claro */
+        /* Estilos de la Calculadora */
+        .calculator {
+            position: relative;
+            z-index: 10; /* Encima del 3D */
+            background: rgba(60, 9, 108, 0.6); /* Morado fantasma transparente */
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(157, 78, 221, 0.5);
+            border-radius: 20px;
             padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), 0 0 20px #7b2cbf;
+            width: 320px;
         }
 
-        /* ... Estilos para botones y pantalla de la calculadora ... */
+        .screen {
+            background-color: #10002b;
+            color: #e0aaff;
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.5rem;
+            text-align: right;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            height: 60px;
+            overflow: hidden;
+            border: 1px solid #5a189a;
+            box-shadow: inset 0 0 10px #000;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        button {
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Fredoka One', cursive;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* Colores de Botones */
+        .btn-num {
+            background-color: #5a189a;
+            color: white;
+        }
+        .btn-num:hover { background-color: #7b2cbf; }
+
+        .btn-op {
+            background-color: #9d4edd; /* Lila brillante */
+            color: #10002b;
+        }
+        .btn-op:hover { background-color: #c77dff; }
+
+        .btn-eq {
+            background-color: #ff006e; /* Rosa Ditto */
+            color: white;
+            grid-column: span 2;
+        }
+        .btn-eq:hover { background-color: #ff4d9e; box-shadow: 0 0 15px #ff006e; }
+
+        .btn-clear {
+            background-color: #3c096c;
+            color: #ff9e00;
+        }
     </style>
 </head>
 <body>
 
-    <div id="fondo-pokemon">
-        </div>
+    <div id="canvas-container"></div>
 
-    <div class="calculadora">
+    <div class="calculator">
+        <div class="screen" id="display">0</div>
+        <div class="buttons">
+            <button class="btn-clear" onclick="clearDisplay()">C</button>
+            <button class="btn-op" onclick="appendOperator('/')">/</button>
+            <button class="btn-op" onclick="appendOperator('*')">x</button>
+            <button class="btn-op" onclick="deleteLast()">DEL</button>
+            
+            <button class="btn-num" onclick="appendNumber('7')">7</button>
+            <button class="btn-num" onclick="appendNumber('8')">8</button>
+            <button class="btn-num" onclick="appendNumber('9')">9</button>
+            <button class="btn-op" onclick="appendOperator('-')">-</button>
+            
+            <button class="btn-num" onclick="appendNumber('4')">4</button>
+            <button class="btn-num" onclick="appendNumber('5')">5</button>
+            <button class="btn-num" onclick="appendNumber('6')">6</button>
+            <button class="btn-op" onclick="appendOperator('+')">+</button>
+            
+            <button class="btn-num" onclick="appendNumber('1')">1</button>
+            <button class="btn-num" onclick="appendNumber('2')">2</button>
+            <button class="btn-num" onclick="appendNumber('3')">3</button>
+            
+            <button class="btn-num" onclick="appendNumber('0')">0</button>
+            <button class="btn-num" onclick="appendNumber('.')">.</button>
+            <button class="btn-eq" onclick="calculate()">=</button>
         </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.150.0/build/three.module.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // 1. Escena Básica
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x240046, 0.02); // Niebla morada
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 12;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Luces
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const pointLight = new THREE.PointLight(0xff00ff, 1, 50);
+        pointLight.position.set(5, 5, 5);
+        scene.add(pointLight);
+
+        // --- CONSTRUCCIÓN DE GENGAR (Simplificado con Geometría) ---
+        const gengarGroup = new THREE.Group();
+        
+        // Cuerpo
+        const bodyGeo = new THREE.SphereGeometry(2.5, 32, 32);
+        const gengarMat = new THREE.MeshStandardMaterial({ color: 0x4a148c, roughness: 0.4 });
+        const body = new THREE.Mesh(bodyGeo, gengarMat);
+        gengarGroup.add(body);
+
+        // Orejas (Conos)
+        const earGeo = new THREE.ConeGeometry(0.8, 1.5, 32);
+        const leftEar = new THREE.Mesh(earGeo, gengarMat);
+        leftEar.position.set(-1.5, 2, 0);
+        leftEar.rotation.z = 0.5;
+        gengarGroup.add(leftEar);
+
+        const rightEar = new THREE.Mesh(earGeo, gengarMat);
+        rightEar.position.set(1.5, 2, 0);
+        rightEar.rotation.z = -0.5;
+        gengarGroup.add(rightEar);
+
+        // Ojos (Rojos brillantes)
+        const eyeGeo = new THREE.SphereGeometry(0.5, 16, 16);
+        const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 2 });
+        
+        const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+        leftEye.position.set(-0.8, 0.5, 2);
+        leftEye.scale.set(1, 0.5, 0.5); // Ojos aplanados enojados
+        leftEye.rotation.z = -0.2;
+        gengarGroup.add(leftEye);
+
+        const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+        rightEye.position.set(0.8, 0.5, 2);
+        rightEye.scale.set(1, 0.5, 0.5);
+        rightEye.rotation.z = 0.2;
+        gengarGroup.add(rightEye);
+
+        // Sonrisa (Torus cortado)
+        const smileGeo = new THREE.TorusGeometry(1.2, 0.1, 16, 100, 3); // Medio circulo
+        const smileMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const smile = new THREE.Mesh(smileGeo, smileMat);
+        smile.position.set(0, -0.5, 2.1);
+        smile.rotation.z = 3.14; // Voltear sonrisa
+        gengarGroup.add(smile);
+
+        // Posición Gengar
+        gengarGroup.position.set(-5, 2, -2);
+        scene.add(gengarGroup);
+
+
+        // --- CONSTRUCCIÓN DE DITTO (Simplificado) ---
+        const dittoGroup = new THREE.Group();
+
+        // Cuerpo (Esfera deformada rosada)
+        const dittoGeo = new THREE.IcosahedronGeometry(2, 2); // Low poly smooth look
+        const dittoMat = new THREE.MeshStandardMaterial({ color: 0xff66b2, roughness: 0.2, metalness: 0.1 });
+        const dittoBody = new THREE.Mesh(dittoGeo, dittoMat);
+        dittoGroup.add(dittoBody);
+
+        // Ojos (Puntos negros pequeños)
+        const dotGeo = new THREE.SphereGeometry(0.15, 16, 16);
+        const dotMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        
+        const dLeftEye = new THREE.Mesh(dotGeo, dotMat);
+        dLeftEye.position.set(-0.5, 0.2, 1.9);
+        dittoGroup.add(dLeftEye);
+
+        const dRightEye = new THREE.Mesh(dotGeo, dotMat);
+        dRightEye.position.set(0.5, 0.2, 1.9);
+        dittoGroup.add(dRightEye);
+
+        // Posición Ditto
+        dittoGroup.position.set(5, -2, -2);
+        scene.add(dittoGroup);
+
+        // --- ANIMACIÓN ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = Date.now() * 0.001;
+
+            // Gengar flotando y rotando lento
+            gengarGroup.position.y = 2 + Math.sin(time) * 0.5;
+            gengarGroup.rotation.y += 0.01;
+
+            // Ditto flotando y tambaleándose (gelatina)
+            dittoGroup.position.y = -2 + Math.sin(time * 1.5) * 0.5;
+            dittoGroup.rotation.z = Math.sin(time * 2) * 0.1;
+            dittoGroup.rotation.x = Math.sin(time * 2) * 0.1;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
 
     <script>
-        // Script JavaScript para la funcionalidad de la calculadora
-        // ...
+        let display = document.getElementById('display');
+        let currentInput = '';
+        
+        function appendNumber(num) {
+            if (currentInput === '0' && num !== '.') currentInput = '';
+            currentInput += num;
+            updateScreen();
+        }
+
+        function appendOperator(op) {
+            // Evitar doble operador
+            const lastChar = currentInput.slice(-1);
+            if (['+', '-', '*', '/'].includes(lastChar)) return;
+            currentInput += op;
+            updateScreen();
+        }
+
+        function clearDisplay() {
+            currentInput = '0';
+            updateScreen();
+        }
+
+        function deleteLast() {
+            currentInput = currentInput.toString().slice(0, -1);
+            if (currentInput === '') currentInput = '0';
+            updateScreen();
+        }
+
+        function calculate() {
+            try {
+                // Eval es peligroso en apps grandes, pero seguro para una calculadora local simple
+                currentInput = eval(currentInput).toString();
+                updateScreen();
+            } catch (error) {
+                currentInput = 'Error';
+                updateScreen();
+                setTimeout(clearDisplay, 1000);
+            }
+        }
+
+        function updateScreen() {
+            display.innerText = currentInput;
+        }
     </script>
 </body>
 </html>
