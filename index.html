@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arcade Station: Tetris | Calcu | Snake</title>
+    <title>Arcade Station: DVD Mode</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka+One&family=Roboto:wght@400;700&display=swap');
 
         body {
             margin: 0;
-            overflow-x: hidden; /* Evitar scroll horizontal */
-            background-color: #10002b; /* Fondo muy oscuro */
+            overflow: hidden; /* Importante: ocultar scrollbars para el look app */
+            background-color: #10002b;
             font-family: 'Roboto', sans-serif;
             color: white;
-            min-height: 100vh;
+            height: 100vh; /* Altura fija */
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column; /* Organizar verticalmente */
+            user-select: none;
         }
 
         /* --- 3D BACKGROUND --- */
@@ -29,20 +29,77 @@
             z-index: 0;
         }
 
-        /* --- MAIN LAYOUT --- */
-        .arcade-container {
+        /* --- MAIN LAYOUT (Arcade) --- */
+        .main-content {
+            flex-grow: 1; /* Ocupa el espacio disponible */
+            display: flex;
+            justify-content: center;
+            align-items: center;
             position: relative;
             z-index: 10;
+            padding-bottom: 80px; /* Espacio para la barra inferior */
+        }
+
+        .arcade-container {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
             justify-content: center;
             align-items: flex-start;
-            padding: 20px;
             max-width: 1200px;
+            /* Escalar un poco para que quepa mejor con la barra abajo */
+            transform: scale(0.9); 
         }
 
-        /* Estilo común para los paneles (Glassmorphism) */
+        /* --- NUEVA BARRA INFERIOR --- */
+        #bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: rgba(36, 0, 70, 0.85);
+            backdrop-filter: blur(15px);
+            border-top: 3px solid #ff006e;
+            box-shadow: 0 -5px 20px rgba(255, 0, 110, 0.3);
+            z-index: 20;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        #img-url-input {
+            flex-grow: 1;
+            max-width: 600px;
+            padding: 12px;
+            border: 2px solid #5a189a;
+            background: #10002b;
+            color: #e0aaff;
+            border-radius: 8px;
+            font-family: 'Roboto', sans-serif;
+            outline: none;
+        }
+        #img-url-input::placeholder { color: #7b2cbf; }
+
+        #add-img-btn {
+            padding: 12px 25px;
+            background: #ff006e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 10px #ff006e;
+            transition: 0.2s;
+        }
+        #add-img-btn:hover { background: #ff4d9e; box-shadow: 0 0 20px #ff4d9e; transform: scale(1.05);}
+        #add-img-btn:active { transform: scale(0.95); }
+
+        /* Paneles Glassmorphism (Estilos previos) */
         .panel {
             background: rgba(36, 0, 70, 0.7);
             backdrop-filter: blur(10px);
@@ -53,7 +110,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: 240px;
         }
+        .calculator { width: 280px; }
 
         h2 {
             font-family: 'Press Start 2P', cursive;
@@ -63,116 +122,85 @@
             text-shadow: 0 0 5px #7b2cbf;
             text-align: center;
         }
-
-        .controls-hint {
-            font-size: 10px;
-            color: #9d4edd;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        /* --- JUEGOS CANVAS --- */
-        canvas {
-            background-color: #000;
-            border: 2px solid #5a189a;
-            border-radius: 5px;
-            box-shadow: 0 0 15px rgba(90, 24, 154, 0.5);
-        }
-
-        /* --- CALCULADORA (Estilos previos) --- */
-        .calculator {
-            width: 280px;
-        }
-        .screen {
-            width: 100%;
-            background-color: #10002b;
-            color: #e0aaff;
-            font-family: 'Fredoka One', cursive;
-            font-size: 2rem;
-            text-align: right;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #5a189a;
-            box-sizing: border-box;
-        }
-        .buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-        }
-        button {
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            font-family: 'Fredoka One', cursive;
-            transition: 0.1s;
-        }
-        button:active { transform: scale(0.95); }
-        .btn-num { background-color: #5a189a; color: white; }
-        .btn-num:hover { background-color: #7b2cbf; }
-        .btn-op { background-color: #9d4edd; color: #10002b; }
-        .btn-eq { background-color: #ff006e; color: white; grid-column: span 2; }
-        .btn-clear { background-color: #3c096c; color: #ff9e00; }
-
+        .controls-hint { font-size: 10px; color: #9d4edd; margin-bottom: 10px; text-align: center; }
+        #tetris, #mines-grid { border: 2px solid #5a189a; border-radius: 5px; box-shadow: 0 0 15px rgba(90, 24, 154, 0.5); }
+        #tetris { background-color: #000; }
+        #mines-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; background-color: #240046; padding: 5px; }
+        .mine-cell { width: 20px; height: 20px; background-color: #3c096c; border-radius: 2px; display: flex; justify-content: center; align-items: center; font-family: 'Press Start 2P'; font-size: 10px; cursor: pointer; transition: 0.1s; }
+        .mine-cell:hover { background-color: #5a189a; }
+        .revealed { background-color: #10002b; border: 1px solid #3c096c; cursor: default; }
+        .flagged { color: #ffbe0b; } .boom { background-color: #ff006e !important; color: white; }
+        .n1 { color: #3a86ff; } .n2 { color: #8338ec; } .n3 { color: #ff006e; } .n4 { color: #fb5607; }
+        .screen { width: 100%; background-color: #10002b; color: #e0aaff; font-family: 'Fredoka One', cursive; font-size: 2rem; text-align: right; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #5a189a; box-sizing: border-box; }
+        .buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; }
+        button.calc-btn { border: none; padding: 12px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; font-family: 'Fredoka One', cursive; transition: 0.1s; }
+        button.calc-btn:active { transform: scale(0.95); }
+        .btn-num { background-color: #5a189a; color: white; } .btn-num:hover { background-color: #7b2cbf; }
+        .btn-op { background-color: #9d4edd; color: #10002b; } .btn-eq { background-color: #ff006e; color: white; grid-column: span 2; } .btn-clear { background-color: #3c096c; color: #ff9e00; }
+        .reset-btn { margin-top: 15px; font-size: 10px; padding: 8px 15px; background: #ff006e; color: white; font-family: 'Press Start 2P'; border-radius: 4px; border:none; cursor: pointer;}
     </style>
 </head>
 <body>
 
     <div id="canvas-container"></div>
 
-    <div class="arcade-container">
-        
-        <div class="panel">
-            <h2>TETRIS</h2>
-            <div class="controls-hint">Usa: W, A, S, D</div>
-            <canvas id="tetris" width="200" height="400"></canvas>
-            <button onclick="resetTetris()" style="margin-top:10px; font-size:10px; padding:5px; background:#ff006e; color:white;">Reiniciar</button>
-            <div id="tetris-score" style="margin-top:5px; font-family:'Press Start 2P'; font-size:10px;">Score: 0</div>
-        </div>
-
-        <div class="panel calculator">
-            <h2>CALCU</h2>
-            <div class="controls-hint">Click para usar</div>
-            <div class="screen" id="display">0</div>
-            <div class="buttons">
-                <button class="btn-clear" onclick="clearDisplay()">C</button>
-                <button class="btn-op" onclick="appendOperator('/')">/</button>
-                <button class="btn-op" onclick="appendOperator('*')">x</button>
-                <button class="btn-op" onclick="deleteLast()">←</button>
-                
-                <button class="btn-num" onclick="appendNumber('7')">7</button>
-                <button class="btn-num" onclick="appendNumber('8')">8</button>
-                <button class="btn-num" onclick="appendNumber('9')">9</button>
-                <button class="btn-op" onclick="appendOperator('-')">-</button>
-                
-                <button class="btn-num" onclick="appendNumber('4')">4</button>
-                <button class="btn-num" onclick="appendNumber('5')">5</button>
-                <button class="btn-num" onclick="appendNumber('6')">6</button>
-                <button class="btn-op" onclick="appendOperator('+')">+</button>
-                
-                <button class="btn-num" onclick="appendNumber('1')">1</button>
-                <button class="btn-num" onclick="appendNumber('2')">2</button>
-                <button class="btn-num" onclick="appendNumber('3')">3</button>
-                
-                <button class="btn-num" onclick="appendNumber('0')">0</button>
-                <button class="btn-num" onclick="appendNumber('.')">.</button>
-                <button class="btn-eq" onclick="calculate()">=</button>
+    <div class="main-content">
+        <div class="arcade-container">
+            
+            <div class="panel">
+                <h2>TETRIS</h2>
+                <div class="controls-hint">W:Rotar A:Izq S:Bajar D:Der</div>
+                <canvas id="tetris" width="200" height="400"></canvas>
+                <div id="tetris-score" style="margin-top:10px; font-family:'Press Start 2P'; font-size:10px; color:#e0aaff;">Score: 0</div>
+                <button class="reset-btn" onclick="resetTetris()">Reiniciar</button>
             </div>
-        </div>
 
-        <div class="panel">
-            <h2>SNAKE</h2>
-            <div class="controls-hint">Usa: Flechas ⬆⬇⬅➡</div>
-            <canvas id="snake" width="200" height="400"></canvas>
-            <button onclick="resetSnake()" style="margin-top:10px; font-size:10px; padding:5px; background:#ff006e; color:white;">Reiniciar</button>
-            <div id="snake-score" style="margin-top:5px; font-family:'Press Start 2P'; font-size:10px;">Score: 0</div>
-        </div>
+            <div class="panel calculator">
+                <h2>CALCU</h2>
+                <div class="controls-hint">Math System v.1</div>
+                <div class="screen" id="display">0</div>
+                <div class="buttons">
+                    <button class="calc-btn btn-clear" onclick="clearDisplay()">C</button>
+                    <button class="calc-btn btn-op" onclick="appendOperator('/')">/</button>
+                    <button class="calc-btn btn-op" onclick="appendOperator('*')">x</button>
+                    <button class="calc-btn btn-op" onclick="deleteLast()">←</button>
+                    
+                    <button class="calc-btn btn-num" onclick="appendNumber('7')">7</button>
+                    <button class="calc-btn btn-num" onclick="appendNumber('8')">8</button>
+                    <button class="calc-btn btn-num" onclick="appendNumber('9')">9</button>
+                    <button class="calc-btn btn-op" onclick="appendOperator('-')">-</button>
+                    
+                    <button class="calc-btn btn-num" onclick="appendNumber('4')">4</button>
+                    <button class="calc-btn btn-num" onclick="appendNumber('5')">5</button>
+                    <button class="calc-btn btn-num" onclick="appendNumber('6')">6</button>
+                    <button class="calc-btn btn-op" onclick="appendOperator('+')">+</button>
+                    
+                    <button class="calc-btn btn-num" onclick="appendNumber('1')">1</button>
+                    <button class="calc-btn btn-num" onclick="appendNumber('2')">2</button>
+                    <button class="calc-btn btn-num" onclick="appendNumber('3')">3</button>
+                    
+                    <button class="calc-btn btn-num" onclick="appendNumber('0')">0</button>
+                    <button class="calc-btn btn-num" onclick="appendNumber('.')">.</button>
+                    <button class="calc-btn btn-eq" onclick="calculate()">=</button>
+                </div>
+            </div>
 
+            <div class="panel">
+                <h2>MINES</h2>
+                <div class="controls-hint">Click:Revelar | Derecho:Bandera</div>
+                <div id="mines-grid"></div>
+                <div id="mines-msg" style="margin-top:10px; font-family:'Press Start 2P'; font-size:10px; color:#e0aaff; height:10px;"></div>
+                <button class="reset-btn" onclick="initMines()">Reiniciar</button>
+            </div>
+
+        </div>
     </div>
+
+    <div id="bottom-bar">
+        <input type="text" id="img-url-input" placeholder="Pega URL de imagen aquí (ej: .jpg, .png)">
+        <button id="add-img-btn">AÑADIR AL FONDO</button>
+    </div>
+
 
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.150.0/build/three.module.js" } }
@@ -191,33 +219,117 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        // Formas geométricas abstractas flotantes
-        const geometry = new THREE.IcosahedronGeometry(1, 0);
-        const material = new THREE.MeshNormalMaterial({ wireframe: true }); 
-        // Usamos MeshNormal para que tenga colores "tech" automáticos morados/azules
-
-        const shapes = [];
+        // --- 1. OBJETOS DE FONDO ORIGINALES (Abstractos) ---
+        const geometryAbstract = new THREE.OctahedronGeometry(1, 0);
+        const materialAbstract = new THREE.MeshNormalMaterial({ wireframe: true }); 
+        const abstractShapes = [];
         
         for (let i = 0; i < 30; i++) {
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.x = (Math.random() - 0.5) * 30;
-            mesh.position.y = (Math.random() - 0.5) * 30;
-            mesh.position.z = (Math.random() - 0.5) * 10;
+            const mesh = new THREE.Mesh(geometryAbstract, materialAbstract);
+            mesh.position.x = (Math.random() - 0.5) * 35;
+            mesh.position.y = (Math.random() - 0.5) * 35;
+            mesh.position.z = (Math.random() - 0.5) * 15;
             mesh.rotation.x = Math.random() * Math.PI;
             scene.add(mesh);
-            shapes.push({ 
+            abstractShapes.push({ 
                 mesh, 
-                rotX: (Math.random()-0.5) * 0.02, 
-                rotY: (Math.random()-0.5) * 0.02 
+                rotX: (Math.random()-0.5) * 0.01, 
+                rotY: (Math.random()-0.5) * 0.01 
             });
         }
 
+        // --- 2. NUEVA LÓGICA PARA IMÁGENES "DVD" ---
+        const textureLoader = new THREE.TextureLoader();
+        const floatingImages = []; // Array para guardar las imágenes que rebotan
+
+        // Calcular los límites de la pantalla en coordenadas 3D en Z=0
+        // Distancia de la cámara (10) * tangente de la mitad del FOV vertical
+        const vFOV = THREE.MathUtils.degToRad(camera.fov); // convertir 75 grados a radianes
+        const visibleHeight = 2 * Math.tan( vFOV / 2 ) * camera.position.z;
+        const visibleWidth = visibleHeight * camera.aspect;
+        
+        const boundaryX = visibleWidth / 2;
+        const boundaryY = visibleHeight / 2;
+
+        // Función para añadir imagen desde la barra inferior
+        function addFloatingImage(url) {
+            textureLoader.load(url, (texture) => {
+                // Crear plano para la imagen (ajustar tamaño según necesites)
+                const imgGeometry = new THREE.PlaneGeometry(4, 4); 
+                const imgMaterial = new THREE.MeshBasicMaterial({ 
+                    map: texture, 
+                    transparent: true, 
+                    side: THREE.DoubleSide 
+                });
+                const imgMesh = new THREE.Mesh(imgGeometry, imgMaterial);
+                
+                // Posición inicial aleatoria cerca del centro
+                imgMesh.position.set((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, 0);
+                
+                scene.add(imgMesh);
+
+                // Velocidad aleatoria para el rebote (estilo DVD)
+                const speed = 0.05;
+                floatingImages.push({
+                    mesh: imgMesh,
+                    vx: (Math.random() > 0.5 ? 1 : -1) * speed,
+                    vy: (Math.random() > 0.5 ? 1 : -1) * speed,
+                    width: 4, // Ancho del plano
+                    height: 4 // Alto del plano
+                });
+
+            }, undefined, (err) => {
+                 alert("Error al cargar la imagen. Verifica la URL. (Nota: Algunas webs bloquean el uso de sus imágenes en otros sitios por CORS).");
+                 console.error(err);
+            });
+        }
+
+
+        // Conectar el botón HTML con la función Three.js
+        const inputBtn = document.getElementById('add-img-btn');
+        const inputField = document.getElementById('img-url-input');
+
+        inputBtn.addEventListener('click', () => {
+            const url = inputField.value.trim();
+            if(url) {
+                addFloatingImage(url);
+                inputField.value = ''; // Limpiar input
+            }
+        });
+
+
+        // --- ANIMATION LOOP PRINCIPAL ---
         function animate() {
             requestAnimationFrame(animate);
-            shapes.forEach(item => {
+
+            // 1. Animar formas abstractas (rotación simple)
+            abstractShapes.forEach(item => {
                 item.mesh.rotation.x += item.rotX;
                 item.mesh.rotation.y += item.rotY;
             });
+
+            // 2. Animar imágenes flotantes (rebote tipo DVD)
+            floatingImages.forEach(item => {
+                item.mesh.position.x += item.vx;
+                item.mesh.position.y += item.vy;
+                // Rotación muy leve para que se vea más dinámico
+                item.mesh.rotation.z += 0.005; 
+
+                // Lógica de rebote (verificando límites)
+                // Mitad del ancho/alto del objeto para que rebote en el borde, no en el centro
+                const halfW = item.width / 2;
+                const halfH = item.height / 2;
+
+                if (item.mesh.position.x + halfW > boundaryX || item.mesh.position.x - halfW < -boundaryX) {
+                    item.vx = -item.vx; // Invertir dirección X
+                }
+                if (item.mesh.position.y + halfH > boundaryY || item.mesh.position.y - halfH < -boundaryY) {
+                    item.vy = -item.vy; // Invertir dirección Y
+                }
+            });
+
+            // Rotación leve de la escena completa
+            scene.rotation.y += 0.0005;
             renderer.render(scene, camera);
         }
         animate();
@@ -226,6 +338,12 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            // Recalcular límites al redimensionar
+            const vFOV = THREE.MathUtils.degToRad(camera.fov);
+            const visibleHeight = 2 * Math.tan( vFOV / 2 ) * camera.position.z;
+            const visibleWidth = visibleHeight * camera.aspect;
+            boundaryX = visibleWidth / 2;
+            boundaryY = visibleHeight / 2;
         });
     </script>
 
@@ -233,318 +351,34 @@
         // --- 1. CALCULADORA ---
         let display = document.getElementById('display');
         let currentInput = '';
-
-        function appendNumber(num) {
-            if (currentInput === '0' && num !== '.') currentInput = '';
-            currentInput += num;
-            updateScreen();
-        }
-        function appendOperator(op) {
-            const last = currentInput.slice(-1);
-            if (['+','-','*','/'].includes(last)) return;
-            currentInput += op;
-            updateScreen();
-        }
+        function appendNumber(num) { if (currentInput === '0' && num !== '.') currentInput = ''; currentInput += num; updateScreen(); }
+        function appendOperator(op) { const last = currentInput.slice(-1); if (['+','-','*','/'].includes(last)) return; currentInput += op; updateScreen(); }
         function clearDisplay() { currentInput = '0'; updateScreen(); }
-        function deleteLast() {
-            currentInput = currentInput.toString().slice(0, -1);
-            if (!currentInput) currentInput = '0';
-            updateScreen();
-        }
-        function calculate() {
-            try { currentInput = eval(currentInput).toString(); updateScreen(); }
-            catch { currentInput = 'Error'; updateScreen(); setTimeout(clearDisplay, 1000); }
-        }
+        function deleteLast() { currentInput = currentInput.toString().slice(0, -1); if (!currentInput) currentInput = '0'; updateScreen(); }
+        function calculate() { try { currentInput = eval(currentInput).toString(); updateScreen(); } catch { currentInput = 'Error'; updateScreen(); setTimeout(clearDisplay, 1000); } }
         function updateScreen() { display.innerText = currentInput; }
 
-
-        // --- 2. SNAKE (Juego de la Serpiente) ---
-        const cvsSnake = document.getElementById("snake");
-        const ctxSnake = cvsSnake.getContext("2d");
-        const box = 20; // Tamaño de celda
-        let snake = [];
-        snake[0] = { x: 5 * box, y: 10 * box };
-        let food = { x: Math.floor(Math.random()*10)*box, y: Math.floor(Math.random()*20)*box };
-        let scoreSnake = 0;
-        let d;
-        let gameSnake;
-
-        document.addEventListener("keydown", direction);
-
-        function direction(event) {
-            if(event.keyCode == 37 && d != "RIGHT") d = "LEFT";
-            else if(event.keyCode == 38 && d != "DOWN") d = "UP";
-            else if(event.keyCode == 39 && d != "LEFT") d = "RIGHT";
-            else if(event.keyCode == 40 && d != "UP") d = "DOWN";
+        // --- 2. BUSCAMINAS ---
+        const gridEl = document.getElementById('mines-grid'); const msgEl = document.getElementById('mines-msg');
+        const SIZE = 10; const MINES_COUNT = 15; let minesBoard = []; let gameOver = false;
+        function initMines() {
+            gridEl.innerHTML = ''; msgEl.innerText = ''; minesBoard = []; gameOver = false;
+            for(let y=0; y<SIZE; y++) { let row = []; for(let x=0; x<SIZE; x++) { row.push({ mine: false, revealed: false, flagged: false, count: 0, el: null }); } minesBoard.push(row); }
+            let placed = 0; while(placed < MINES_COUNT) { let rx = Math.floor(Math.random() * SIZE); let ry = Math.floor(Math.random() * SIZE); if(!minesBoard[ry][rx].mine) { minesBoard[ry][rx].mine = true; placed++; }}
+            for(let y=0; y<SIZE; y++) { for(let x=0; x<SIZE; x++) { if(!minesBoard[y][x].mine) { let count = 0; for(let dy=-1; dy<=1; dy++) { for(let dx=-1; dx<=1; dx++) { let ny = y+dy, nx = x+dx; if(ny>=0 && ny<SIZE && nx>=0 && nx<SIZE && minesBoard[ny][nx].mine) count++; }} minesBoard[y][x].count = count; }}}
+            for(let y=0; y<SIZE; y++) { for(let x=0; x<SIZE; x++) { let cell = document.createElement('div'); cell.className = 'mine-cell'; cell.dataset.y = y; cell.dataset.x = x; cell.addEventListener('click', () => reveal(y, x)); cell.addEventListener('contextmenu', (e) => { e.preventDefault(); toggleFlag(y, x); }); minesBoard[y][x].el = cell; gridEl.appendChild(cell); }}
         }
-
-        function drawSnake() {
-            ctxSnake.fillStyle = "#10002b"; // Fondo
-            ctxSnake.fillRect(0, 0, 200, 400);
-
-            for(let i = 0; i < snake.length; i++) {
-                ctxSnake.fillStyle = (i == 0) ? "#ff006e" : "#e0aaff"; // Cabeza rosa, cuerpo lila
-                ctxSnake.fillRect(snake[i].x, snake[i].y, box, box);
-                ctxSnake.strokeStyle = "#10002b";
-                ctxSnake.strokeRect(snake[i].x, snake[i].y, box, box);
-            }
-
-            ctxSnake.fillStyle = "#3a86ff"; // Comida azul
-            ctxSnake.fillRect(food.x, food.y, box, box);
-
-            let snakeX = snake[0].x;
-            let snakeY = snake[0].y;
-
-            if(d == "LEFT") snakeX -= box;
-            if(d == "UP") snakeY -= box;
-            if(d == "RIGHT") snakeX += box;
-            if(d == "DOWN") snakeY += box;
-
-            // Comer
-            if(snakeX == food.x && snakeY == food.y) {
-                scoreSnake++;
-                document.getElementById('snake-score').innerText = "Score: " + scoreSnake;
-                food = {
-                    x: Math.floor(Math.random()*10) * box,
-                    y: Math.floor(Math.random()*20) * box
-                }
-            } else {
-                snake.pop();
-            }
-
-            // Game Over (Paredes o cuerpo)
-            if(snakeX < 0 || snakeX > 19 * box || snakeY < 0 || snakeY > 19 * box || collision(snakeX, snakeY, snake)) {
-                clearInterval(gameSnake);
-                ctxSnake.fillStyle = "white";
-                ctxSnake.font = "20px 'Press Start 2P'";
-                ctxSnake.fillText("Perdiste", 20, 200);
-                return;
-            }
-
-            let newHead = { x: snakeX, y: snakeY };
-            snake.unshift(newHead);
+        function reveal(y, x) {
+            if(gameOver || minesBoard[y][x].revealed || minesBoard[y][x].flagged) return; minesBoard[y][x].revealed = true; minesBoard[y][x].el.classList.add('revealed');
+            if(minesBoard[y][x].mine) { minesBoard[y][x].el.classList.add('boom'); minesBoard[y][x].el.innerHTML = '💣'; msgEl.innerText = "¡BOOM!"; gameOver = true; revealAll(); } else { if(minesBoard[y][x].count > 0) { minesBoard[y][x].el.innerText = minesBoard[y][x].count; minesBoard[y][x].el.classList.add('n' + minesBoard[y][x].count); } else { for(let dy=-1; dy<=1; dy++) { for(let dx=-1; dx<=1; dx++) { let ny = y+dy, nx = x+dx; if(ny>=0 && ny<SIZE && nx>=0 && nx<SIZE) reveal(ny, nx); }}} checkWin(); }
         }
+        function toggleFlag(y, x) { if(gameOver || minesBoard[y][x].revealed) return; minesBoard[y][x].flagged = !minesBoard[y][x].flagged; minesBoard[y][x].el.innerHTML = minesBoard[y][x].flagged ? '🚩' : ''; minesBoard[y][x].el.classList.toggle('flagged'); }
+        function revealAll() { for(let y=0; y<SIZE; y++) { for(let x=0; x<SIZE; x++) { if(minesBoard[y][x].mine) { minesBoard[y][x].el.innerHTML = '💣'; if(!minesBoard[y][x].revealed) minesBoard[y][x].el.style.backgroundColor = '#5a189a'; }}}}
+        function checkWin() { let hiddenCount = 0; for(let y=0; y<SIZE; y++) { for(let x=0; x<SIZE; x++) { if(!minesBoard[y][x].revealed) hiddenCount++; }} if(hiddenCount === MINES_COUNT) { msgEl.innerText = "¡GANASTE!"; gameOver = true; }}
+        initMines();
 
-        function collision(headX, headY, array) {
-            for(let i = 0; i < array.length; i++) {
-                if(headX == array[i].x && headY == array[i].y) return true;
-            }
-            return false;
-        }
-
-        function resetSnake() {
-            clearInterval(gameSnake);
-            snake = [];
-            snake[0] = { x: 5 * box, y: 10 * box };
-            scoreSnake = 0;
-            document.getElementById('snake-score').innerText = "Score: 0";
-            d = null;
-            gameSnake = setInterval(drawSnake, 150); // Velocidad
-        }
-        resetSnake();
-
-
-        // --- 3. TETRIS (Simplificado) ---
-        const cvsTetris = document.getElementById("tetris");
-        const ctxTetris = cvsTetris.getContext("2d");
-        const ROW = 20;
-        const COL = 10;
-        const SQ = 20;
-        const VACANT = "#10002b";
-
-        let board = [];
-        for(let r = 0; r < ROW; r++){
-            board[r] = [];
-            for(let c = 0; c < COL; c++){
-                board[r][c] = VACANT;
-            }
-        }
-
-        function drawSquare(x,y,color){
-            ctxTetris.fillStyle = color;
-            ctxTetris.fillRect(x*SQ,y*SQ,SQ,SQ);
-            ctxTetris.strokeStyle = "#5a189a";
-            ctxTetris.strokeRect(x*SQ,y*SQ,SQ,SQ);
-        }
-
-        function drawBoard(){
-            for(let r = 0; r < ROW; r++){
-                for(let c = 0; c < COL; c++){
-                    drawSquare(c,r,board[r][c]);
-                }
-            }
-        }
-        drawBoard();
-
-        const PIECES = [
-            [Z,"#ff006e"], [S,"#3a86ff"], [T,"#ffbe0b"], [O,"#fb5607"], [L,"#8338ec"], [I,"#3a0ca3"], [J,"#e0aaff"]
-        ];
-
-        // Definición de piezas (matrices 0/1)
-        var Z = [[[1,1,0],[0,1,1],[0,0,0]], [[0,0,1],[0,1,1],[0,1,0]], [[0,0,0],[1,1,0],[0,1,1]], [[0,1,0],[1,1,0],[1,0,0]]];
-        var S = [[[0,1,1],[1,1,0],[0,0,0]], [[0,1,0],[0,1,1],[0,0,1]], [[0,0,0],[0,1,1],[1,1,0]], [[1,0,0],[1,1,0],[0,1,0]]];
-        var T = [[[0,1,0],[1,1,1],[0,0,0]], [[0,1,0],[0,1,1],[0,1,0]], [[0,0,0],[1,1,1],[0,1,0]], [[0,1,0],[1,1,0],[0,1,0]]];
-        var O = [[[0,0,0],[0,1,1],[0,1,1]], [[0,0,0],[0,1,1],[0,1,1]], [[0,0,0],[0,1,1],[0,1,1]], [[0,0,0],[0,1,1],[0,1,1]]];
-        var L = [[[0,0,1],[1,1,1],[0,0,0]], [[0,1,0],[0,1,0],[0,1,1]], [[0,0,0],[1,1,1],[1,0,0]], [[1,1,0],[0,1,0],[0,1,0]]];
-        var I = [[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], [[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]], [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], [[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]]];
-        var J = [[[1,0,0],[1,1,1],[0,0,0]], [[0,1,1],[0,1,0],[0,1,0]], [[0,0,0],[1,1,1],[0,0,1]], [[0,1,0],[0,1,0],[1,1,0]]];
-
-        // Hack para asignar variables después de definir
-        PIECES[0][0]=Z; PIECES[1][0]=S; PIECES[2][0]=T; PIECES[3][0]=O; PIECES[4][0]=L; PIECES[5][0]=I; PIECES[6][0]=J;
-
-        let p; 
-        let scoreTetris = 0;
-
-        function randomPiece(){
-            let r = Math.floor(Math.random() * PIECES.length); 
-            return new Piece( PIECES[r][0],PIECES[r][1]);
-        }
-
-        function Piece(tetromino,color){
-            this.tetromino = tetromino;
-            this.color = color;
-            this.tetrominoN = 0; 
-            this.activeTetromino = this.tetromino[this.tetrominoN];
-            this.x = 3;
-            this.y = -2;
-        }
-
-        Piece.prototype.fill = function(color){
-            for(let r = 0; r < this.activeTetromino.length; r++){
-                for(let c = 0; c < this.activeTetromino.length; c++){
-                    if(this.activeTetromino[r][c]){
-                        drawSquare(this.x + c,this.y + r, color);
-                    }
-                }
-            }
-        }
-
-        Piece.prototype.draw = function(){ this.fill(this.color); }
-        Piece.prototype.unDraw = function(){ this.fill(VACANT); }
-
-        Piece.prototype.moveDown = function(){
-            if(!this.collision(0,1,this.activeTetromino)){
-                this.unDraw();
-                this.y++;
-                this.draw();
-            }else{
-                this.lock();
-                p = randomPiece();
-            }
-        }
-
-        Piece.prototype.moveRight = function(){
-            if(!this.collision(1,0,this.activeTetromino)){
-                this.unDraw();
-                this.x++;
-                this.draw();
-            }
-        }
-        Piece.prototype.moveLeft = function(){
-            if(!this.collision(-1,0,this.activeTetromino)){
-                this.unDraw();
-                this.x--;
-                this.draw();
-            }
-        }
-        Piece.prototype.rotate = function(){
-            let nextPattern = this.tetromino[(this.tetrominoN + 1)%this.tetromino.length];
-            let kick = 0;
-            if(this.collision(0,0,nextPattern)){
-                if(this.x > COL/2) kick = -1; else kick = 1;
-            }
-            if(!this.collision(kick,0,nextPattern)){
-                this.unDraw();
-                this.x += kick;
-                this.tetrominoN = (this.tetrominoN + 1)%this.tetromino.length; 
-                this.activeTetromino = this.tetromino[this.tetrominoN];
-                this.draw();
-            }
-        }
-
-        Piece.prototype.collision = function(x,y,piece){
-            for(let r = 0; r < piece.length; r++){
-                for(let c = 0; c < piece.length; c++){
-                    if(!piece[r][c]) continue;
-                    let newX = this.x + c + x;
-                    let newY = this.y + r + y;
-                    if(newX < 0 || newX >= COL || newY >= ROW) return true;
-                    if(newY < 0) continue;
-                    if(board[newY][newX] != VACANT) return true;
-                }
-            }
-            return false;
-        }
-
-        Piece.prototype.lock = function(){
-            for(let r = 0; r < this.activeTetromino.length; r++){
-                for(let c = 0; c < this.activeTetromino.length; c++){
-                    if(!this.activeTetromino[r][c]) continue;
-                    if(this.y + r < 0){
-                        // Game Over
-                        clearInterval(gameTetris);
-                        document.getElementById('tetris-score').innerText = "Game Over";
-                        return;
-                    }
-                    board[this.y+r][this.x+c] = this.color;
-                }
-            }
-            // Eliminar filas
-            for(let r = 0; r < ROW; r++){
-                let isRowFull = true;
-                for(let c = 0; c < COL; c++){
-                    isRowFull = isRowFull && (board[r][c] != VACANT);
-                }
-                if(isRowFull){
-                    for(let y = r; y > 1; y--){
-                        for(let c = 0; c < COL; c++){
-                            board[y][c] = board[y-1][c];
-                        }
-                    }
-                    for(let c = 0; c < COL; c++) board[0][c] = VACANT;
-                    scoreTetris += 10;
-                    document.getElementById('tetris-score').innerText = "Score: " + scoreTetris;
-                }
-            }
-            drawBoard();
-        }
-
-        // CONTROLES TETRIS (WASD)
-        document.addEventListener("keydown", function(e){
-            if(e.keyCode == 65) p.moveLeft(); // A
-            else if(e.keyCode == 87) p.rotate();    // W
-            else if(e.keyCode == 68) p.moveRight(); // D
-            else if(e.keyCode == 83) p.moveDown();  // S
-        });
-
-        let dropStart = Date.now();
-        let gameTetris;
-        function drop(){
-            let now = Date.now();
-            let delta = now - dropStart;
-            if(delta > 1000){
-                p.moveDown();
-                dropStart = Date.now();
-            }
-            if(document.getElementById('tetris-score').innerText !== "Game Over")
-                gameTetris = requestAnimationFrame(drop);
-        }
-
-        function resetTetris() {
-            cancelAnimationFrame(gameTetris);
-            board = [];
-            for(let r = 0; r < ROW; r++){
-                board[r] = [];
-                for(let c = 0; c < COL; c++) board[r][c] = VACANT;
-            }
-            drawBoard();
-            scoreTetris = 0;
-            document.getElementById('tetris-score').innerText = "Score: 0";
-            p = randomPiece();
-            drop();
-        }
-        resetTetris();
-
+        // --- 3. TETRIS (Código optimizado) ---
+        const cvsTetris=document.getElementById("tetris"),ctxTetris=cvsTetris.getContext("2d"),ROW=20,COL=10,SQ=20,VACANT="#10002b";let board=[];for(let r=0;r<ROW;r++){board[r]=[];for(let c=0;c<COL;c++)board[r][c]=VACANT}function drawSquare(e,t,r){ctxTetris.fillStyle=r,ctxTetris.fillRect(e*SQ,t*SQ,SQ,SQ),ctxTetris.strokeStyle="#5a189a",ctxTetris.strokeRect(e*SQ,t*SQ,SQ,SQ)}function drawBoard(){for(let e=0;e<ROW;e++)for(let t=0;t<COL;t++)drawSquare(t,e,board[e][t])}drawBoard();const PIECES=[[Z,"#ff006e"],[S,"#3a86ff"],[T,"#ffbe0b"],[O,"#fb5607"],[L,"#8338ec"],[I,"#3a0ca3"],[J,"#e0aaff"]];var Z=[[[1,1,0],[0,1,1],[0,0,0]],[[0,0,1],[0,1,1],[0,1,0]],[[0,0,0],[1,1,0],[0,1,1]],[[0,1,0],[1,1,0],[1,0,0]]],S=[[[0,1,1],[1,1,0],[0,0,0]],[[0,1,0],[0,1,1],[0,0,1]],[[0,0,0],[0,1,1],[1,1,0]],[[1,0,0],[1,1,0],[0,1,0]]],T=[[[0,1,0],[1,1,1],[0,0,0]],[[0,1,0],[0,1,1],[0,1,0]],[[0,0,0],[1,1,1],[0,1,0]],[[0,1,0],[1,1,0],[0,1,0]]],O=[[[0,0,0],[0,1,1],[0,1,1]],[[0,0,0],[0,1,1],[0,1,1]],[[0,0,0],[0,1,1],[0,1,1]],[[0,0,0],[0,1,1],[0,1,1]]],L=[[[0,0,1],[1,1,1],[0,0,0]],[[0,1,0],[0,1,0],[0,1,1]],[[0,0,0],[1,1,1],[1,0,0]],[[1,1,0],[0,1,0],[0,1,0]]],I=[[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],[[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]],[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],[[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]]],J=[[[1,0,0],[1,1,1],[0,0,0]],[[0,1,1],[0,1,0],[0,1,0]],[[0,0,0],[1,1,1],[0,0,1]],[[0,1,0],[0,1,0],[1,1,0]]];PIECES[0][0]=Z,PIECES[1][0]=S,PIECES[2][0]=T,PIECES[3][0]=O,PIECES[4][0]=L,PIECES[5][0]=I,PIECES[6][0]=J;let p,scoreTetris=0;function randomPiece(){let e=Math.floor(Math.random()*PIECES.length);return new Piece(PIECES[e][0],PIECES[e][1])}function Piece(e,t){this.tetromino=e,this.color=t,this.tetrominoN=0,this.activeTetromino=this.tetromino[this.tetrominoN],this.x=3,this.y=-2}Piece.prototype.fill=function(e){for(let t=0;t<this.activeTetromino.length;t++)for(let r=0;r<this.activeTetromino.length;r++)this.activeTetromino[t][r]&&drawSquare(this.x+r,this.y+t,e)},Piece.prototype.draw=function(){this.fill(this.color)},Piece.prototype.unDraw=function(){this.fill(VACANT)},Piece.prototype.moveDown=function(){this.collision(0,1,this.activeTetromino)?(this.lock(),p=randomPiece()):(this.unDraw(),this.y++,this.draw())},Piece.prototype.moveRight=function(){this.collision(1,0,this.activeTetromino)||(this.unDraw(),this.x++,this.draw())},Piece.prototype.moveLeft=function(){this.collision(-1,0,this.activeTetromino)||(this.unDraw(),this.x--,this.draw())},Piece.prototype.rotate=function(){let e=this.tetromino[(this.tetrominoN+1)%this.tetromino.length],t=0;this.collision(0,0,e)&&(t=this.x>COL/2?-1:1),this.collision(t,0,e)||(this.unDraw(),this.x+=t,this.tetrominoN=(this.tetrominoN+1)%this.tetromino.length,this.activeTetromino=this.tetromino[this.tetrominoN],this.draw())},Piece.prototype.collision=function(e,t,r){for(let o=0;o<r.length;o++)for(let i=0;i<r.length;i++){if(!r[o][i])continue;let n=this.x+i+e,a=this.y+o+t;if(n<0||n>=COL||a>=ROW)return!0;if(a<0)continue;if(board[a][n]!=VACANT)return!0}return!1},Piece.prototype.lock=function(){for(let e=0;e<this.activeTetromino.length;e++)for(let t=0;t<this.activeTetromino.length;t++){if(!this.activeTetromino[e][t])continue;if(this.y+e<0)return document.getElementById("tetris-score").innerText="Game Over",void clearInterval(gameTetris);board[this.y+e][this.x+t]=this.color}for(let e=0;e<ROW;e++){let t=!0;for(let r=0;r<COL;r++)t=t&&board[e][r]!=VACANT;if(t){for(let t=e;t>1;t--)for(let r=0;r<COL;r++)board[t][r]=board[t-1][r];for(let e=0;e<COL;e++)board[0][e]=VACANT;scoreTetris+=10,document.getElementById("tetris-score").innerText="Score: "+scoreTetris}}drawBoard()},document.addEventListener("keydown",function(e){65==e.keyCode?p.moveLeft():87==e.keyCode?p.rotate():68==e.keyCode?p.moveRight():83==e.keyCode&&p.moveDown()});let dropStart=Date.now(),gameTetris;function drop(){let e=Date.now();e-dropStart>1e3&&(p.moveDown(),dropStart=Date.now()),"Game Over"!==document.getElementById("tetris-score").innerText&&(gameTetris=requestAnimationFrame(drop))}function resetTetris(){cancelAnimationFrame(gameTetris),board=[];for(let e=0;e<ROW;e++){board[e]=[];for(let t=0;t<COL;t++)board[e][t]=VACANT}drawBoard(),scoreTetris=0,document.getElementById("tetris-score").innerText="Score: 0",p=randomPiece(),drop()}resetTetris();
     </script>
 </body>
 </html>
