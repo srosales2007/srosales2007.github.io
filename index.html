@@ -1,1 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Pokémon Gengar y Ditto 3D</title>
+    <style>
+        /* Estilos CSS para la calculadora y el fondo */
+        body {
+            font-family: sans-serif;
+            background-color: #673AB7; /* Morado oscuro */
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
 
+        #fondo-pokemon {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Para que esté detrás de la calculadora */
+            /* Aquí irían los modelos 3D de Gengar y Ditto flotando */
+            /* Puedes usar librerías como Three.js para crear animaciones 3D */
+            /* Ejemplo simple con imágenes (reemplaza con tus modelos 3D): */
+            /* background-image: url("gengar.png"), url("ditto.png"); */
+            /* background-repeat: no-repeat; */
+            /* background-position: 10% 20%, 80% 70%; */
+            /* animation: flotar 5s ease-in-out infinite alternate; */
+        }
+
+        @keyframes flotar {
+            from { transform: translateY(0); }
+            to { transform: translateY(-20px); }
+        }
+
+        .calculadora {
+            background-color: #9575CD; /* Morado claro */
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ... Estilos para botones y pantalla de la calculadora ... */
+    </style>
+</head>
+<body>
+
+    <div id="fondo-pokemon">
+        </div>
+
+    <div class="calculadora">
+        </div>
+
+    <script>
+        // Script JavaScript para la funcionalidad de la calculadora
+        // ...
+    </script>
+</body>
+</html>
